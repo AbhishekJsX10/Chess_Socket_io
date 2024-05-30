@@ -1,5 +1,3 @@
-
-
 const socket = io();
 
 const chess = new Chess();
@@ -20,19 +18,19 @@ const renderBoard = () => {
             const squareElement = document.createElement("div");
             squareElement.classList.add("square", (actualRowIndex + actualSquareIndex) % 2 === 0 ? "light" : "dark");
 
-            squareElement.dataset.row = actualRowIndex;
-            squareElement.dataset.col = actualSquareIndex;
+            squareElement.dataset.row = rowIndex;
+            squareElement.dataset.col = squareIndex;
 
             if (square) {
                 const pieceElement = document.createElement("div");
                 pieceElement.classList.add("piece", square.color === "w" ? "white" : "black");
                 pieceElement.innerText = getUniqueCode(square);
-                pieceElement.draggable = playerRole === square.color;
+                pieceElement.draggable = (playerRole === square.color);
 
                 pieceElement.addEventListener("dragstart", (e) => {
                     if (pieceElement.draggable) {
                         dragPiece = pieceElement;
-                        sourceSquare = { row: actualRowIndex, col: actualSquareIndex };
+                        sourceSquare = { row: rowIndex, col: squareIndex };
                         e.dataTransfer.setData("text/plain", "");
                     }
                 });
@@ -69,8 +67,9 @@ const handleMove = (source, target) => {
     const move = {
         from: `${String.fromCharCode(97 + source.col)}${8 - source.row}`,
         to: `${String.fromCharCode(97 + target.col)}${8 - target.row}`,
-        promotion: "q"
+        promotion: "q"  // Always promote to a queen for simplicity
     };
+
     if (chess.move(move)) {
         socket.emit('move', move);
     }

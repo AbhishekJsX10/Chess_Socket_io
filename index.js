@@ -1,6 +1,3 @@
-
-
-
 const express = require("express");
 const socketIO = require("socket.io");
 const http = require("http");
@@ -12,8 +9,7 @@ const server = http.createServer(app);
 const io = socketIO(server);
 
 const chess = new Chess();
-let players = {};
-let currentPlayer = "w";
+let players = { white: null, black: null };
 
 // Static file setup
 app.set("view engine", "ejs");
@@ -39,13 +35,16 @@ io.on("connection", (socket) => {
         socket.emit("spectatorRole");
     }
 
+    // Send initial board state
+    socket.emit("boardState", chess.fen());
+
     // Handle disconnection
     socket.on("disconnect", () => {
         console.log("A user disconnected");
         if (socket.id === players.white) {
-            delete players.white;
+            players.white = null;
         } else if (socket.id === players.black) {
-            delete players.black;
+            players.black = null;
         }
     });
 
@@ -59,7 +58,6 @@ io.on("connection", (socket) => {
             // Attempt to make the move
             const result = chess.move(move);
             if (result) {
-                currentPlayer = chess.turn();
                 io.emit("move", move);
                 io.emit("boardState", chess.fen());
             } else {
